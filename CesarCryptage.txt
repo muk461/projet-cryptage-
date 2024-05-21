@@ -1,0 +1,48 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.NUMERIC_STD.ALL;
+
+entity CaesarCipher is
+    Port (
+        clk        : in  STD_LOGIC; -- Signal d'horloge
+        plaintext  : in  STD_LOGIC_VECTOR (127 downto 0); -- 16 caractères d'entrée (ASCII, 16 x 8 bits)
+        key        : in  STD_LOGIC_VECTOR (4 downto 0); -- Clé (0 à 25)
+        ciphertext : out STD_LOGIC_VECTOR (127 downto 0) -- 16 caractères de sortie (ASCII, 16 x 8 bits)
+    );
+end CaesarCipher;
+
+architecture Behavioral of CaesarCipher is
+begin
+    process(clk)
+        -- Variables pour stocker les valeurs internes
+        variable plain_val    : INTEGER;
+        variable key_val      : INTEGER;
+        variable cipher_val   : INTEGER;
+        variable i            : INTEGER;
+    begin
+        if rising_edge(clk) then
+            -- Convertir la clé en entier
+            key_val := TO_INTEGER(unsigned(key));
+
+            -- Boucle pour traiter chaque caractère (16 caractères)
+            for i in 0 to 15 loop
+                plain_val := TO_INTEGER(unsigned(plaintext(8*i+7 downto 8*i)));
+
+                -- Chiffrement pour les lettres majuscules (A-Z)
+                if (plain_val >= 65 and plain_val <= 90) then
+                    cipher_val := ((plain_val - 65 + key_val) mod 26) + 65;
+                    ciphertext(8*i+7 downto 8*i) <= std_logic_vector(TO_UNSIGNED(cipher_val, 8));
+
+                -- Chiffrement pour les lettres minuscules (a-z)
+                elsif (plain_val >= 97 and plain_val <= 122) then
+                    cipher_val := ((plain_val - 97 + key_val) mod 26) + 97;
+                    ciphertext(8*i+7 downto 8*i) <= std_logic_vector(TO_UNSIGNED(cipher_val, 8));
+
+                -- Les caractères non alphabétiques restent inchangés
+                else
+                    ciphertext(8*i+7 downto 8*i) <= plaintext(8*i+7 downto 8*i);
+                end if;
+            end loop;
+        end if;
+    end process;
+end Behavioral;
